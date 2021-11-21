@@ -1,0 +1,5 @@
+flask-sqlalchemy
+mysql-connector
+flask-expects-json
+python-dotenv
+mysql-connector-python
