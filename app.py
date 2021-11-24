@@ -5,9 +5,10 @@ from datetime import datetime
 import os
 
 app = Flask(__name__)
-default_db_path = 'postgresql+psycopg2://{user}:{password}@{server}/{database}'.format(
+default_db_path = 'postgres://{user}:{password}@{server}/{database}'.format(
     user='postgres', password='Js083408', server='localhost', database='reto')
 db_path = os.getenv('DATABASE_URL', default_db_path)
+db_path = db_path.replace('postgres', 'postgresql+psycopg2')
 app.config['SQLALCHEMY_DATABASE_URI'] = db_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
