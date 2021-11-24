@@ -3,3 +3,5 @@ mysql-connector
 flask-expects-json
 python-dotenv
 mysql-connector-python
+psycopg2-binary
+gunicorn

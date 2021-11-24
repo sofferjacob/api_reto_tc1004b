@@ -2,13 +2,10 @@ from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_expects_json import expects_json
 from datetime import datetime
-import os
 
 app = Flask(__name__)
-default_db_path = 'postgresql+psycopg2://{user}:{password}@{server}/{database}'.format(
-    user='postgres', password='Js083408', server='localhost', database='reto')
-db_path = os.getenv('DATABASE_URL', default_db_path)
-app.config['SQLALCHEMY_DATABASE_URI'] = db_path
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{user}:{password}@{server}/{database}'.format(
+    user='root', password='reto', server='localhost', database='reto')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -403,8 +400,8 @@ def get_model_parameters(id):
     query = f"""
     SELECT *
     FROM model_parameters
-    INNER JOIN parameter ON parameter."parameterId" = model_parameters."parameterId"
-    AND model_parameters."modelId" = {id};
+    INNER JOIN parameter ON parameter.parameterId = model_parameters.parameterId
+    AND model_parameters.modelId = {id};
     """
     parameters = db.engine.execute(query)
 
@@ -455,11 +452,11 @@ def delete_parameter_from_model(modelId, parameterId):
 def get_devices():
     query = """
     SELECT *,
-        model."modelName",
-        location.name AS "locationName"
+        model.modelName,
+        location.name AS locationName
     FROM device
-        LEFT JOIN model ON device."modelId" = model."modelId"
-        LEFT JOIN location ON device."locationId" = location."locationId";
+        LEFT JOIN model ON device.modelId = model.modelId
+        LEFT JOIN location ON device.locationId = location.locationId;
     """
     devices = db.engine.execute(query)
     response = jsonify([{"id": device.deviceId, "status": device.status, "mac": device.mac, "modelId": device.modelId,
@@ -472,12 +469,12 @@ def get_devices():
 def get_device(id):
     query = f"""
     SELECT *,
-        model."modelName",
-        location.name AS "locationName"
+        model.modelName,
+        location.name AS locationName
     FROM device
-        LEFT JOIN model ON device."modelId" = model."modelId"
-        LEFT JOIN location ON device."locationId" = location."locationId"
-    WHERE device."deviceId" = {id};
+        LEFT JOIN model ON device.modelId = model.modelId
+        LEFT JOIN location ON device.locationId = location.locationId
+    WHERE device.deviceId = {id};
     """
     device = db.engine.execute(query).first()
     if device is None:
@@ -493,11 +490,11 @@ def get_device(id):
 @app.route('/devicesfull/<int:id>', methods=['GET'])
 def get_device_full(id):
     query = f"""
-    SELECT *, model."modelName"
+    SELECT *, model.modelName
     FROM device
-        LEFT JOIN model ON device."modelId" = model."modelId"
-        LEFT JOIN location ON device."locationId" = location."locationId"
-    WHERE device."deviceId" = {id};
+        LEFT JOIN model ON device.modelId = model.modelId
+        LEFT JOIN location ON device.locationId = location.locationId
+    WHERE device.deviceId = {id};
     """
     device = db.engine.execute(query).first()
     if device is None:
@@ -516,11 +513,11 @@ def get_device_full(id):
 def get_device_by_mac(mac):
     query = f"""
     SELECT *,
-        model."modelName",
-        location.name AS "locationName"
+        model.modelName,
+        location.name AS locationName
     FROM device
-        LEFT JOIN model ON device."modelId" = model."modelId"
-        LEFT JOIN location ON device."locationId" = location."locationId"
+        LEFT JOIN model ON device.modelId = model.modelId
+        LEFT JOIN location ON device.locationId = location.locationId
     WHERE device.mac = '{mac[1:]}';
     """
     device = db.engine.execute(query).first()
@@ -624,22 +621,3 @@ def create_log():
     response = jsonify({'message': 'ok'})
     response.status_code = 201
     return response
-
-
-@app.route('/logs/<int:deviceId>', methods=['GET'])
-def get_logs(deviceId):
-    query = f"""
-    SELECT *
-    FROM measurement
-    INNER JOIN parameter ON measurement."parameterId" = parameter."parameterId"
-    WHERE "deviceId" = {deviceId};
-    """
-    logs = db.engine.execute(query)
-    response = jsonify([dict(row) for row in logs])
-    response.status_code = 200
-    return response
-
-
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='127.0.0.1', port=port)
