@@ -7,7 +7,7 @@ MQ135 gasSensor = MQ135(APIN);
 void setup() {
   // Lo usamos para comunicarnos
   // con el ESP8266
-  Serial.begin(4800);
+  Serial.begin(9600);
 }
 
 void loop() {
